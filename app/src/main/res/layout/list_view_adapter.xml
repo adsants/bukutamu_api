@@ -41,10 +41,5 @@
         android:layout_height="wrap_content"
         android:text="12/12/2018"
         android:textSize="12sp"/>
-    <TextView
-        android:id="@+id/text_tanggal_input"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"/>
 
 </LinearLayout>
