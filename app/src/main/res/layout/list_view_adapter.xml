@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="5dp">
+
+    <TextView
+        android:id="@+id/text_transaksi_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+    <TextView
+        android:id="@+id/text_nama"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Adi Santoso"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:layout_marginBottom="3dp"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/text_alamat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="jl. Kediri"
+            android:textSize="14sp"/>
+        <TextView
+            android:id="@+id/text_jkl"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:text="Laki-Laki"
+            android:textSize="14sp"/>
+
+    </RelativeLayout>
+    <TextView
+        android:id="@+id/text_tanggal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="12/12/2018"
+        android:textSize="12sp"/>
+    <TextView
+        android:id="@+id/text_tanggal_input"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+
+</LinearLayout>
