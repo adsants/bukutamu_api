@@ -14,9 +14,17 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.adsants.bukutamusqllite.helper.ConfigURL;
 import com.adsants.bukutamusqllite.helper.CurrentDate;
 import com.adsants.bukutamusqllite.helper.SqliteHelper;
 import com.andexert.library.RippleView;
+import com.androidnetworking.AndroidNetworking;
+import com.androidnetworking.common.Priority;
+import com.androidnetworking.error.ANError;
+import com.androidnetworking.interfaces.JSONObjectRequestListener;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -72,24 +80,47 @@ public class EditActivity extends AppCompatActivity {
             }
         });
 
-        SQLiteDatabase db =  sqliteHelper.getReadableDatabase();
+        /**SQLiteDatabase db =  sqliteHelper.getReadableDatabase();
         cursor = db.rawQuery("select *,strftime('%d-%m-%Y', tanggal_input) AS tgl from transaksi where transaksi_id = '"+MainActivity.transaksi_id+"'", null);
         cursor.moveToFirst();
+        **/
 
-        jenisKelamin = cursor.getString(1);
 
-        switch (jenisKelamin){
-            case "Perempuan" : input_radio_cewek.setChecked(true);
-                break;
-            case "Laki-Laki" : input_radio_cowok.setChecked(true);
-                break;
-        }
+        AndroidNetworking.post(ConfigURL.Domain + "get.php")
+            .addBodyParameter("transaksi_id", MainActivity.transaksi_id)
+            .setPriority(Priority.MEDIUM)
+            .build()
+            .getAsJSONObject(new JSONObjectRequestListener() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    try {
+                        if(response.getString("response").equals("success")){
+                            input_nama.setText( response.getString("nama"));
+                            input_alamat.setText(response.getString("alamat"));
+                            input_tanggal.setText(response.getString("tanggal_indo"));
 
-        input_nama.setText(cursor.getString(2));
-        input_alamat.setText(cursor.getString(3));
-
-        tanggalUntukSimpan = cursor.getString(4);
-        input_tanggal.setText(cursor.getString(5));
+                            jenisKelamin    = response.getString("jenis_kelamin");
+                          //  jenisKelamin = "Perempuan";
+                            switch (jenisKelamin){
+                                case "Perempuan" : input_radio_cewek.setChecked(true);
+                                    break;
+                                case "Laki-Laki" : input_radio_cowok.setChecked(true);
+                                    break;
+                            }
+                        }
+                        else{
+                            Toast.makeText(getApplicationContext(), "Maaf, tidak dapat mengambil Data !", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                    catch (JSONException e){
+                        e.printStackTrace();
+                    }
+                }
+                @Override
+                public void onError(ANError error) {
+                    // handle error
+                }
+            });
 
 
         input_tanggal.setOnClickListener(new View.OnClickListener() {
@@ -139,7 +170,7 @@ public class EditActivity extends AppCompatActivity {
     }
 
     private void update_data(){
-        SQLiteDatabase database = sqliteHelper.getWritableDatabase();
+        /**SQLiteDatabase database = sqliteHelper.getWritableDatabase();
         database.execSQL("update transaksi set nama = '"+input_nama.getText().toString()+"', alamat = '"+input_alamat.getText().toString()+"' , " +
                 "jenis_kelamin='"+jenisKelamin+"',  tanggal_input = '"+tanggalUntukSimpan+"' " +
                 "where transaksi_id = '"+transaksi_id+"'  ");
@@ -147,6 +178,37 @@ public class EditActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), "Data berhasil disimpan.", Toast.LENGTH_LONG).show();
 
         finish();
+         **/
+        AndroidNetworking.post(ConfigURL.Domain + "update.php")
+            .addBodyParameter("transaksi_id", MainActivity.transaksi_id)
+            .addBodyParameter("jenis_kelamin", jenisKelamin)
+            .addBodyParameter("alamat",  input_alamat.getText().toString())
+            .addBodyParameter("nama", input_nama.getText().toString())
+            .addBodyParameter("tanggal_input", input_tanggal.getText().toString())
+            .setPriority(Priority.MEDIUM)
+            .build()
+            .getAsJSONObject(new JSONObjectRequestListener() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    try {
+                        if(response.getString("response").equals("success")){
+                            Toast.makeText(getApplicationContext(), "Data berhasil disimpan.", Toast.LENGTH_LONG).show();
+                            Log.e("input_tanggal", input_tanggal.getText().toString() );
+                            finish();
+                        }
+                        else{
+                            Toast.makeText(getApplicationContext(), "Maaf, Data Gagal disimpan !", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                    catch (JSONException e){
+                        e.printStackTrace();
+                    }
+                }
+                @Override
+                public void onError(ANError error) {
+                    // handle error
+                }
+            });
     }
 
     @Override

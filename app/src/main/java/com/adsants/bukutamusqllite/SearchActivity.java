@@ -82,8 +82,9 @@ public class SearchActivity extends AppCompatActivity {
                 else{
                     MainActivity.query_pencarian = true;
                     MainActivity.text_hasil_pencarian.setText(input_mulai.getText().toString() +" s/d "+input_akhir.getText().toString());
-                    MainActivity.text_hasil_pencarian.setVisibility(View.VISIBLE);
 
+
+                    MainActivity.text_hasil_pencarian.setVisibility(View.VISIBLE);
                     finish();
                 }
             }

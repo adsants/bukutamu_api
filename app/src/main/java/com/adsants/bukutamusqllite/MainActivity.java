@@ -1,5 +1,6 @@
 package com.adsants.bukutamusqllite;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -12,12 +13,15 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -29,6 +33,7 @@ import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.common.Priority;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
+import com.leavjenn.smoothdaterangepicker.date.SmoothDateRangePickerFragment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,6 +44,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity {
 
     ListView list_bukutamu;
@@ -47,14 +54,12 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayList<HashMap<String, String>>  data_buku_tamu;
 
-    public static String transaksi_id,tgl_mulai,tgl_akhir;
+    public static String transaksi_id,tgl_mulai,tgl_akhir,tgl_mulai_post,tgl_akhir_post;
     public static TextView text_hasil_pencarian;
     public static boolean query_pencarian;
     public static String nama,jenis_kelamin,alamat,tanggal_input,tanggal_indo;
 
     String query_data,query_total;
-
-    SqliteHelper sqliteHelper;
     Cursor cursor;
 
     @Override
@@ -63,28 +68,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
-//        Belajar Layout
-
-        // log.d adalah untuk debug
-        Log.d("contoh","hasilnya satu");
-
-        // log.e adalah untuk error
-        Log.e("contoh2","hasilnya Dua");
-
         toolbar.setTitle("Buku Tamu API by adsants");
         setSupportActionBar(toolbar);
 
-        //Toolbar mToolbar = findViewById(R.id.toolbar);
-
-
+        ButterKnife.bind(this);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-
                 //// untuk onclick tombol add
                 startActivity(new Intent(MainActivity.this, AddActivity.class));
             }
@@ -92,8 +84,6 @@ public class MainActivity extends AppCompatActivity {
 
         list_bukutamu           = findViewById(R.id.list_view);
         data_buku_tamu          = new ArrayList<>();
-
-        sqliteHelper            = new SqliteHelper(this);
 
         jumlah_perempuan        = findViewById(R.id.jumlah_perempuan);
         jumlah_laki             = findViewById(R.id.jumlah_laki);
@@ -105,14 +95,11 @@ public class MainActivity extends AppCompatActivity {
         swipe_refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+            text_hasil_pencarian.setVisibility(View.GONE);
+            tgl_mulai_post = "";
+            tgl_akhir_post = "";
+            _readMysql();
 
-                query_data  =   "select *,strftime('%d-%m-%Y', tanggal_input) AS tgl from transaksi order by tanggal_input desc";
-                query_total =   "select count(*) as jumlah_total,(select count(*) from transaksi where jenis_kelamin='Laki-Laki') as jumlah_laki," +
-                        "(select count(*) from transaksi where jenis_kelamin='Perempuan') as jumlah_perempuan " +
-                        "from transaksi ";
-
-               // kasAdapter();
-                _readMysql();
             }
         });
 
@@ -122,25 +109,14 @@ public class MainActivity extends AppCompatActivity {
     public void onResume(){
         super.onResume();
 
-        query_data  =   "select *,strftime('%d-%m-%Y', tanggal_input) AS tgl from transaksi order by tanggal_input desc";
-        query_total =   "select count(*) as jumlah_total," +
-                "(select count(*) from transaksi where jenis_kelamin='Laki-Laki') as jumlah_laki," +
-                "(select count(*) from transaksi where jenis_kelamin='Perempuan') as jumlah_perempuan " +
-                "from transaksi ";
+        tgl_mulai_post = "";
+        tgl_akhir_post = "";
 
         if(query_pencarian){
-            query_data  =   "select *,strftime('%d-%m-%Y', tanggal_input) AS tgl from transaksi" +
-                    " where (tanggal_input >= '"+tgl_mulai+"') and (tanggal_input <= '"+tgl_akhir+"')" +
-                    "order by tanggal_input desc";
-            query_total =   "select count(*) as jumlah_total," +
-                    "(select count(*) from transaksi where jenis_kelamin='Laki-Laki' and  (tanggal_input >= '"+tgl_mulai+"') " +
-                    "and (tanggal_input <= '"+tgl_akhir+"')) as jumlah_laki," +
-                    "(select count(*) from transaksi where jenis_kelamin='Perempuan' and  (tanggal_input >= '"+tgl_mulai+"') " +
-                    "and (tanggal_input <= '"+tgl_akhir+"')) as jumlah_perempuan " +
-                    "from transaksi where (tanggal_input >= '"+tgl_mulai+"') and (tanggal_input <= '"+tgl_akhir+"')";
+            tgl_mulai_post = tgl_mulai;
+            tgl_akhir_post = tgl_akhir;
         }
 
-        //kasAdapter();
         _readMysql();
     }
 
@@ -150,6 +126,8 @@ public class MainActivity extends AppCompatActivity {
         list_bukutamu.setAdapter(null);
 
         AndroidNetworking.post(ConfigURL.Domain + "list.php")
+            .addBodyParameter("tgl_mulai_post", tgl_mulai_post)
+            .addBodyParameter("tgl_akhir_post", tgl_akhir_post)
             .setPriority(Priority.MEDIUM)
             .build()
             .getAsJSONObject(new JSONObjectRequestListener() {
@@ -204,83 +182,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 transaksi_id = ((TextView)view.findViewById(R.id.text_transaksi_id)).getText().toString();
-                Log.e("transaksi_id", transaksi_id);
-
-                popUpAction();
-            }
-        });
-    }
-
-    protected void kasAdapter() {
-
-        data_buku_tamu.clear();
-        list_bukutamu.setAdapter(null);
-
-        SQLiteDatabase db = sqliteHelper.getReadableDatabase();
-        cursor = db.rawQuery(query_data, null);
-        cursor.moveToFirst();
-
-        int i;
-        for( i=0; i < cursor.getCount(); i++ ){
-            cursor.moveToPosition(i);
-
-            HashMap<String, String > map = new HashMap<>();
-
-            map.put("transaksi_id", cursor.getString(0));
-            map.put("nama", cursor.getString(2));
-            map.put("jkl", cursor.getString(1));
-            map.put("alamat", cursor.getString(3));
-            map.put("tanggal", cursor.getString(5));
-
-            data_buku_tamu.add(map);
-        }
-
-        if (i == 0){
-            Toast.makeText(getApplicationContext(), "Tidak ada transaksi untuk ditampilkan",
-                    Toast.LENGTH_LONG).show();
-        }
-
-        SimpleAdapter simpleAdapter =  new SimpleAdapter( this, data_buku_tamu, R.layout.list_view_adapter,
-         new String[] {"transaksi_id" , "nama", "jkl", "alamat", "tanggal"},
-         new int[] {R.id.text_transaksi_id, R.id.text_nama, R.id.text_jkl, R.id.text_alamat, R.id.text_tanggal}
-        );
-        list_bukutamu.setAdapter(simpleAdapter);
-
-        list_bukutamu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                transaksi_id = ((TextView)view.findViewById(R.id.text_transaksi_id)).getText().toString();
-                Log.e("transaksi_id", transaksi_id);
-
+                nama = ((TextView)view.findViewById(R.id.text_nama)).getText().toString();
                 popUpAction();
             }
         });
 
-        hitungJumlah();
-
-        /// menghilangkan loading refresh
-        swipe_refresh.setRefreshing(false);
-
     }
-
-    private void hitungJumlah() {
-        NumberFormat rupiahFormat = NumberFormat.getInstance(Locale.GERMANY);
-
-        SQLiteDatabase db = sqliteHelper.getReadableDatabase();
-        cursor = db.rawQuery(query_total, null);
-        cursor.moveToFirst();
-
-
-        jumlah_laki.setText(rupiahFormat.format(cursor.getDouble(1)));
-        jumlah_perempuan.setText(rupiahFormat.format(cursor.getDouble(2)));
-        jumlah_keseluruhan.setText(rupiahFormat.format(cursor.getDouble(0)));
-
-        if(!query_pencarian){
-            text_hasil_pencarian.setVisibility(View.GONE);
-        }
-        query_pencarian = false;
-    }
-
 
     private void popUpAction(){
         final Dialog dialog = new Dialog(MainActivity.this);
@@ -312,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
     private void TampilPesanHapusData(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Pesan Konfirmasi");
-        builder.setMessage("Anda yakin akan menghapus Data terpilih ..?");
+        builder.setMessage(Html.fromHtml("Anda yakin akan menghapus Data <b>"+nama+"</b> ..?"));
         builder.setPositiveButton("Ya", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -329,13 +236,44 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
-
     private void hapus_data() {
-        SQLiteDatabase db = sqliteHelper.getWritableDatabase();
+        /*SQLiteDatabase db = sqliteHelper.getWritableDatabase();
         db.execSQL("delete from transaksi where transaksi_id='"+transaksi_id+"'");
 
         Toast.makeText(getApplicationContext(),"Data Berhasil dihapus", Toast.LENGTH_LONG).show();
-        kasAdapter();
+        kasAdapter();*/
+
+
+        AndroidNetworking.post(ConfigURL.Domain + "delete.php")
+            .addBodyParameter("transaksi_id", transaksi_id)
+            .setPriority(Priority.MEDIUM)
+            .build()
+            .getAsJSONObject(new JSONObjectRequestListener() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    try {
+                        if(response.getString("response").equals("success")){
+                            Toast.makeText(getApplicationContext(),"Data Berhasil dihapus", Toast.LENGTH_LONG).show();
+                            _readMysql();
+
+                            //Log.e("pesan_hapus",  response.getString("response"));
+
+                        }
+                        else{
+                            Toast.makeText(getApplicationContext(), "Maaf, Data Gagal dihapus !", Toast.LENGTH_LONG).show();
+
+                            //Log.e("pesan_hapus",  response.getString("response"));
+                        }
+                    }
+                    catch (JSONException e){
+                        e.printStackTrace();
+                    }
+                }
+                @Override
+                public void onError(ANError error) {
+                    // handle error
+                }
+            });
     }
 
     @Override
@@ -354,9 +292,42 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            startActivity(new Intent(MainActivity.this, SearchActivity.class));
+           // startActivity(new Intent(MainActivity.this, SearchActivity.class));
+            _tampilDateRange();
         }
-
         return super.onOptionsItemSelected(item);
+
+
+
     }
+
+    private void _tampilDateRange(){
+        SmoothDateRangePickerFragment smoothDateRangePickerFragment = SmoothDateRangePickerFragment.newInstance(
+                new SmoothDateRangePickerFragment.OnDateRangeSetListener() {
+                    @Override
+                    public void onDateRangeSet(SmoothDateRangePickerFragment view,
+                                               int yearStart, int monthStart,
+                                               int dayStart, int yearEnd,
+                                               int monthEnd, int dayEnd ) {
+                        // grab the date range, do what you want
+
+                        tgl_mulai_post = yearStart+"-"+(monthStart + 1)+"-"+dayStart;
+                        tgl_akhir_post = yearEnd+"-"+(monthEnd + 1)+"-"+dayEnd;
+
+
+
+                        text_hasil_pencarian.setText("Hasil Pencarian");
+                        text_hasil_pencarian.setVisibility(View.VISIBLE);
+                        _readMysql();
+
+                        //Log.e("_dateRange", "dateMulai "+ tgl_mulai_post +" DateAkhir "+ tgl_akhir_post);
+
+                    }
+                });
+
+        smoothDateRangePickerFragment.show(getFragmentManager(), "smoothDateRangePicker");
+    }
+
+
+
 }

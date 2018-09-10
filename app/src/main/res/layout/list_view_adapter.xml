@@ -1,45 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="5dp">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="5dip" >
 
     <TextView
         android:id="@+id/text_transaksi_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"/>
-    <TextView
-        android:id="@+id/text_nama"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Adi Santoso"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:layout_marginBottom="3dp"/>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/text_alamat"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="jl. Kediri"
-            android:textSize="14sp"/>
-        <TextView
-            android:id="@+id/text_jkl"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:text="Laki-Laki"
-            android:textSize="14sp"/>
+        android:layout_alignTop="@+id/thumbnail"
+        android:layout_toRightOf="@+id/thumbnail"
+        android:visibility="gone" />
 
-    </RelativeLayout>
-    <TextView
-        android:id="@+id/text_tanggal"
+    <!--  ListRow Left sied Thumbnail image -->
+    <LinearLayout android:id="@+id/thumbnail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="12/12/2018"
-        android:textSize="12sp"/>
+        android:padding="3dip"
+        android:layout_alignParentLeft="true"
+        android:layout_marginRight="5dip">
 
-</LinearLayout>
+        <ImageView
+            android:id="@+id/list_image"
+            android:layout_width="50dip"
+            android:layout_height="50dip"
+            android:src="@drawable/man"/>
+
+    </LinearLayout>
+
+    <!-- Title Of Song-->
+    <TextView
+        android:id="@+id/text_nama"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/thumbnail"
+        android:layout_toRightOf="@+id/thumbnail"
+        android:text="Rihanna Love the way lie"
+        android:textColor="#040404"
+        android:typeface="sans"
+        android:textSize="15dip"
+        android:textStyle="bold"/>
+
+    <!-- Artist Name -->
+    <TextView
+        android:id="@+id/text_alamat"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/text_nama"
+        android:textColor="#343434"
+        android:textSize="14dip"
+        android:layout_marginTop="1dip"
+        android:layout_toRightOf="@+id/thumbnail"
+        android:text="Jl Jalan" />
+
+    <TextView
+        android:id="@+id/text_tanggal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/text_alamat"
+        android:textColor="#343434"
+        android:textSize="10dip"
+        android:layout_marginTop="1dip"
+        android:layout_toRightOf="@+id/thumbnail"
+        android:text="21.09.2016" />
+
+    <!-- Rightend Duration -->
+    <TextView
+        android:id="@+id/text_jkl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@id/text_tanggal"
+        android:gravity="right"
+        android:text="Laki-Laki"
+        android:layout_marginRight="5dip"
+        android:textSize="10dip"
+        android:textStyle="bold"/>
+
+
+</RelativeLayout>
